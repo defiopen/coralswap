@@ -2059,21 +2059,21 @@ contract Lottery is LotteryOwnable, Initializable {
         emit Claim(msg.sender, _tokenId, reward);
     }
 
-    function  multiClaim(uint256[] memory _tickets) external {
-        uint256 totalReward = 0;
+    function multiClaim(uint256[] memory _tickets) external { 
+        uint256 totalReward = 0; 
         for (uint i = 0; i < _tickets.length; i++) {
-            require (msg.sender == lotteryNFT.ownerOf(_tickets[i]), "not from owner");
-            require (!lotteryNFT.getClaimStatus(_tickets[i]), "claimed");
-            uint256 reward = getRewardView(_tickets[i]);
-            if(reward>0) {
+            require (msg.sender == lotteryNFT.ownerOf(_tickets[i]), "not from owner"); 
+            require (!lotteryNFT.getClaimStatus(_tickets[i]), "claimed"); 
+            lotteryNFT.claimReward(_tickets[i]); 
+            uint256 reward = getRewardView(_tickets[i]); 
+            if(reward>0) { 
                 totalReward = reward.add(totalReward);
-            }
+            } 
         }
-        lotteryNFT.multiClaimReward(_tickets);
-        if(totalReward>0) {
-            coral.safeTransfer(address(msg.sender), totalReward);
+        if(totalReward>0) { 
+            coral.safeTransfer(address(msg.sender),totalReward); 
         }
-        emit MultiClaim(msg.sender, totalReward);
+        emit MultiClaim(msg.sender, totalReward); 
     }
 
     function generateNumberIndexKey(uint8[4] memory number) public pure returns (uint64[keyLengthForEachBuy] memory) {
