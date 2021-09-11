@@ -207,6 +207,7 @@ contract SinglePool is Ownable {
         pool.lpToken.safeTransfer(address(msg.sender), user.amount);
         user.amount = 0;
         user.rewardDebt = 0;
+		totalDeposit = totalDeposit.sub(user.amount);
         emit EmergencyWithdraw(msg.sender, user.amount);
     }
 
