@@ -37,6 +37,9 @@ contract IFO is ReentrancyGuard {
   address[] public addressList;
 
   uint256 public totalLpAmount = 0;
+  
+  uint256 constant private n1=1e12;
+  uint256 constant private n2=1e6;
 
   event Deposit(address indexed user, uint256 amount);
   event Harvest(address indexed user, uint256 offeringAmount, uint256 excessAmount);
@@ -92,29 +95,32 @@ contract IFO is ReentrancyGuard {
     require (userInfo[msg.sender].amount > 0, 'have you participated?');
     require (!userInfo[msg.sender].claimed, 'nothing to harvest');
     uint256 offeringTokenAmount = getOfferingAmount(msg.sender);
+    require(offeringTokenAmount>0,"Invalid offeringTokenAmount");
     uint256 refundingTokenAmount = getRefundingAmount(msg.sender);
+    userInfo[msg.sender].claimed = true;
+    require(offeringTokenAmount>0,"Offering token is insufficient");
     offeringToken.safeTransfer(address(msg.sender), offeringTokenAmount);
     if (refundingTokenAmount > 0) {
       lpToken.safeTransfer(address(msg.sender), refundingTokenAmount);
     }
-    userInfo[msg.sender].claimed = true;
     emit Harvest(msg.sender, offeringTokenAmount, refundingTokenAmount);
   }
 
   function hasHarvest(address _user) external view returns(bool) {
+      require(userInfo[_user].amount>0,"The user address does not exist");
       return userInfo[_user].claimed;
   }
 
   // allocation 100000 means 0.1(10%), 1 meanss 0.000001(0.0001%), 1000000 means 1(100%)
   function getUserAllocation(address _user) public view returns(uint256) {
-    return userInfo[_user].amount.mul(1e12).div(totalAmount).div(1e6);
+    return userInfo[_user].amount.mul(n1).div(totalAmount).div(n2);
   }
 
   // get the amount of IFO token you will get
   function getOfferingAmount(address _user) public view returns(uint256) {
     if (totalAmount > raisingAmount) {
       uint256 allocation = getUserAllocation(_user);
-      return offeringAmount.mul(allocation).div(1e6);
+      return offeringAmount.mul(allocation).div(n2);
     }
     else {
       // userInfo[_user] / (raisingAmount / offeringAmount)
@@ -128,7 +134,7 @@ contract IFO is ReentrancyGuard {
       return 0;
     }
     uint256 allocation = getUserAllocation(_user);
-    uint256 payAmount = raisingAmount.mul(allocation).div(1e6);
+    uint256 payAmount = raisingAmount.mul(allocation).div(n2);
     return userInfo[_user].amount.sub(payAmount);
   }
 

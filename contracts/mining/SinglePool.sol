@@ -92,6 +92,7 @@ contract SinglePool is Ownable {
 
     // Return reward multiplier over the given _from to _to block.
     function getMultiplier(uint256 _from, uint256 _to) public view returns (uint256) {
+        require(_from<to,"Invalid block");
         if (_to <= bonusEndBlock) {
             return _to.sub(_from).mul(BONUS_MULTIPLIER);
         } else if (_from >= bonusEndBlock) {
@@ -207,7 +208,7 @@ contract SinglePool is Ownable {
         pool.lpToken.safeTransfer(address(msg.sender), user.amount);
         user.amount = 0;
         user.rewardDebt = 0;
-		totalDeposit = totalDeposit.sub(user.amount);
+        totalDeposit = totalDeposit.sub(user.amount);
         emit EmergencyWithdraw(msg.sender, user.amount);
     }
 
@@ -215,6 +216,7 @@ contract SinglePool is Ownable {
     function emergencyRewardWithdraw(uint256 _amount) public onlyOwner {
         require(_amount < rewardToken.balanceOf(address(this)), 'not enough token');
         rewardToken.safeTransfer(address(msg.sender), _amount);
+        totalDeposit = totalDeposit.sub(_amount);
     }
 
 }

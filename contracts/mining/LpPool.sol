@@ -186,9 +186,15 @@ contract LpPool is Ownable {
     // View function to see pending corals on frontend.
     function pendingCoral(uint256 _pid, address _user) external view returns (uint256) {
         require(totalAllocPoint != 0, "totalAllocPoint is zero!");
-
-        PoolInfo storage pool = poolInfo[_pid];
-        UserInfo storage user = userInfo[_pid][_user];
+        PoolInfo memory pool = poolInfo[_pid];
+        if(pool.allocPoint<1){
+            return 0;
+        }
+        UserInfo memory user = userInfo[_pid][_user];
+        if(user.amount<1){
+            return 0;
+        }
+        
         uint256 accCoralPerShare = pool.accCoralPerShare;
         uint256 lpSupply = pool.lpToken.balanceOf(address(this));
         if (block.number > pool.lastRewardBlock && lpSupply != 0) {
@@ -211,6 +217,9 @@ contract LpPool is Ownable {
     // Update reward variables of the given pool to be up-to-date.
     function updatePool(uint256 _pid) public {
         PoolInfo storage pool = poolInfo[_pid];
+        if(pool.allocPoint<1){
+            return;
+        }
         if (block.number <= pool.lastRewardBlock) {
             return;
         }
@@ -292,6 +301,7 @@ contract LpPool is Ownable {
     // Update dev address by the previous dev.
     function dev(address _devaddr) public {
         require(msg.sender == devaddr, "dev: wut?");
+        require(_devaddr!=address(0), "dev: Invalid address");
         devaddr = _devaddr;
     }
     
